@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- <link rel="shortcut icon" href="favicon.ico"> -->
+
+	<title>Socket Chat Room</title>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<script type="text/javascript">
+		
+		var randomNames = [	"<name>Bonitinho</name>",
+							"<name>Falido</name>",
+							"<name>Porra Jean</name>",
+							"<name>Monstro Sagrado</name>",
+							"<name>BOOM</name>",
+							"<name>HebeService</name>",
+							"<name>Sênior</name>",
+							"<name>Dilma</name>",
+							"<name>Boa Noite Paulo</name>"
+							];
+
+		var rand = randomNames[Math.floor(Math.random() * randomNames.length)];
+
+		const socket = io();
+
+		socket.on('connect',function (){
+			//Envia o nome do usuário
+			socket.emit('name',rand);
+			//Exibe o nome do usuário
+			$('#userName').append(rand);
+
+			//Recebe as mensagens
+			socket.on('chatResponse', (resposta) => {
+				$('#msg').append(resposta+'<br>');
+				$('#typing').html("");
+			});
+
+			//Recebe o número de participantes da sala
+			socket.on('users', (resposta) => {
+				$('#users').text(resposta);
+			});
+
+			socket.on('typing', (resposta) => {
+				$('#typing').html(resposta);
+			});
+
+			//Envia a mensagem
+			$("#chat").keydown(function(key){
+				if($(this).val() != "") {
+					if(key.keyCode === 13){
+						socket.emit('chat',$(this).val());
+						$(this).val("");
+					} else if ($(this).val() != "") {
+						socket.emit('typing',$(this).val());
+					}
+				}
+			});
+
+			$("#send").click(function(){
+				if($("#chat").val() != "") {
+					socket.emit('chat',$("#chat").val());
+					$("#chat").val("");
+				}
+			});
+
+			$('#userName').click(function(){
+				var newName = prompt("Digite um novo nome, ou ganho um novo aleatoriamente.");
+				if(newName != null){
+					newName = "<name>"+newName+"</name>";
+					socket.emit('nameChange',newName);
+					$('#userName').html(newName);
+				} else {
+					var rand = randomNames[Math.floor(Math.random() * randomNames.length)];
+					socket.emit('nameChange',rand);
+					$('#userName').html(rand);
+				}
+			});		
+
+		});
+
+	</script>
+
+	<style type="text/css">
+		name {
+			color: gold;
+		}
+		quit {
+			color: red;
+		}
+		join {
+			color: green;
+		}
+	</style>
+
+</head>
+<body>
+
+	<div class="row">
+		<div class="col-md-2"></div>	
+		<div class="col-md-8">
+			<h1>Seja Bem-vindo(a) <span id="userName"></span></h1>
+			<small><span id="users"></span> Usuário(s) Online!</small>
+		</div>
+	</div>
+	<hr>
+
+	<div class="row">
+		<div class="col-md-2"></div>	
+		<div class="col-md-8">
+			<div id="msg" style="width: 100%;height: 500px;overflow: scroll"></div>
+		</div>
+	</div>
+	
+	<div class="row" style="margin-top: 20px; position: absolute; bottom: 30px;">
+		<div class="col-md-2"></div>
+		<div class="col-md-8">
+
+			<div class="input-group">
+				<input type="text" class="form-control" name="chat" id="chat" style="width:100%;" placeholder="Digite Algo legal Aqui">	
+				<span class="input-group-btn">
+					<button class="btn btn-success" id="send" type="button">Enviar</button>
+				</span>
+			</div>
+  
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class="col-md-8">
+			<small id="typing"></small>
+		</div>
+	</div>
+
+</body>
+</html>
