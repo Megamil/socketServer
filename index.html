@@ -22,6 +22,10 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 	<script type="text/javascript">
+
+
+
+	String.prototype.stripHTML = function() {return this.replace(/<.*?>/g, '');}
 		
 		var randomNames = [	"<name>Bonitinho</name>",
 							"<name>Falido</name>",
@@ -63,17 +67,17 @@
 			$("#chat").keydown(function(key){
 				if($(this).val() != "") {
 					if(key.keyCode === 13){
-						socket.emit('chat',$(this).val());
+						socket.emit('chat',$(this).val().stripHTML());
 						$(this).val("");
 					} else if ($(this).val() != "") {
-						socket.emit('typing',$(this).val());
+						socket.emit('typing',$(this).val().stripHTML());
 					}
 				}
 			});
 
 			$("#send").click(function(){
 				if($("#chat").val() != "") {
-					socket.emit('chat',$("#chat").val());
+					socket.emit('chat',$("#chat").val().stripHTML());
 					$("#chat").val("");
 				}
 			});
